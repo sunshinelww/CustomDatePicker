@@ -8,8 +8,11 @@
 
 #import "LWViewController.h"
 #import "LWDatePicker.h"
+#import "LWDateTimeSettingModel.h"
 
 @interface LWViewController ()
+
+@property (nonatomic, strong)LWDatePicker *datePicker;
 
 @end
 
@@ -18,13 +21,25 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-	// Do any additional setup after loading the view, typically from a nib.
+    LWDateTimeSettingModel *settingModel = [LWDateTimeSettingModel new];
+    settingModel.dateType = LWDatePickerDateFormatTypeYMDHM;
+    settingModel.startDate = [NSDate dateWithTimeIntervalSince1970:0];
+    settingModel.endDate = [NSDate date];
+    settingModel.defaultDate = [NSDate date];
+    self.datePicker = [[LWDatePicker alloc] initWithDateSettingModel:settingModel];
+    [self.view addSubview:self.datePicker];
 }
 
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+- (void)viewWillLayoutSubviews{
+    self.datePicker.frame = CGRectMake(0, self.view.frame.size.height, self.view.frame.size.width, 0);
+}
+
+- (void)viewDidAppear:(BOOL)animated{
+    [UIView animateWithDuration:0.2f animations:^{
+         self.datePicker.frame = CGRectMake(0, self.view.frame.size.height - self.datePicker.viewHeight, self.view.frame.size.width, self.datePicker.viewHeight);
+    } completion:^(BOOL finished) {
+        
+    }];
 }
 
 @end

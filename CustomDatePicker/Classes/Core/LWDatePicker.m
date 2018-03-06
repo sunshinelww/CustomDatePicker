@@ -66,7 +66,15 @@ typedef NS_ENUM(NSInteger,ViewTag) {
     self = [super init];
     if (self) {
         _settingModel = settingModel;
+        
+        _yearArray = [NSMutableArray array];
+        _monthArray = [NSMutableArray array];
+        _dayArray = [NSMutableArray array];
+        _hourArray = [NSMutableArray array];
+        _minuteArray = [NSMutableArray array];
+        
         [self setupUI];
+        [self refreshAllTime];
     }
     return self;
 }
@@ -93,22 +101,15 @@ typedef NS_ENUM(NSInteger,ViewTag) {
 
 - (void)layoutSubviews{
     [super layoutSubviews];
-    self.frame = [UIScreen mainScreen].bounds;
+    self.bounds = CGRectMake(0, 0, LWDatePickerWidth, LWDatePickerHeight);
     CGFloat minX = 0;
     CGFloat minY = 0;
-    CGFloat minW = 0;
-    CGFloat minH = 0;
+    CGFloat minW = LWDatePickerWidth;
+    CGFloat minH = LWDatePickerHeight;
     
-    CGFloat minViewW = CGRectGetWidth(self.frame);
-    CGFloat minViewH = CGRectGetHeight(self.frame);
+    self.backView.frame = self.bounds;
     
-    minY = minViewH - LWDatePickerHeight;
-    minH = LWDatePickerHeight;
-    minW = minViewW;
-    
-    self.backView.frame = CGRectMake(minX, minY, minW, minH);
-    
-    _cellHeight = (minViewH -40)/5.f;
+    _cellHeight = (minH - 40)/5.f;
     
     //布局顶部控制
     self.toolBarView.frame = CGRectMake(0, 0, minW, 40);
@@ -147,6 +148,43 @@ typedef NS_ENUM(NSInteger,ViewTag) {
             minX += minW;
             self.minuteTableView.frame = CGRectMake(minX, minY, minW, minH - minY);
             break;
+        default:
+            break;
+    }
+    [self.yearTableView reloadData];
+    [self.monthTableView reloadData];
+    [self.dayTableView reloadData];
+    [self.hourTableView reloadData];
+    [self.minuteTableView reloadData];
+}
+
+- (void)refreshAllTime{
+    switch (self.settingModel.dateType) {
+        case LWDatePickerDateFormatTypeYM:{
+            [self refreshYear];
+            [self refreshMonthWithYear:[NSString stringWithFormat:@"%ld年",self.settingModel.defaultDate.year]];
+            break;
+        }
+        case LWDatePickerDateFormatTypeYMD:{
+            NSString *year = [NSString stringWithFormat:@"%ld年",self.settingModel.defaultDate.year];
+            NSString *month = [NSString stringWithFormat:@"%02ld月",self.settingModel.defaultDate.month];
+            [self refreshYear];
+            [self refreshMonthWithYear:year];
+            [self refreshDayWithYear:year andMonth:month];
+            break;
+        }
+        case LWDatePickerDateFormatTypeYMDHM:{
+            NSString *year = [NSString stringWithFormat:@"%ld年",self.settingModel.defaultDate.year];
+            NSString *month = [NSString stringWithFormat:@"%02ld月",self.settingModel.defaultDate.month];
+            NSString *day = [NSString stringWithFormat:@"%02ld日", self.settingModel.defaultDate.day];
+            NSString *hour = [NSString stringWithFormat:@"%02ld", self.settingModel.defaultDate.hour];
+            [self refreshYear];
+            [self refreshMonthWithYear:year];
+            [self refreshDayWithYear:year andMonth:month];
+            [self refreshHourWithYear:year andMonth:month andDay:day];
+            [self refreshMinuteWithYear:year andMonth:month andDay:day andHour:hour];
+            break;
+        }
         default:
             break;
     }
@@ -312,7 +350,7 @@ typedef NS_ENUM(NSInteger,ViewTag) {
     NSInteger maxYear = self.settingModel.endDate.year;
     
     [self.yearArray removeAllObjects];
-    for (NSInteger i =minYear; i<=maxYear; i++) {
+    for (NSInteger i = minYear; i<= maxYear; i++) {
         [self.yearArray addObject:[NSString stringWithFormat:@"%ld",(long)i]];
     }
     [self.yearTableView reloadData];
@@ -332,9 +370,9 @@ typedef NS_ENUM(NSInteger,ViewTag) {
     if (isMax) {
         max = self.settingModel.endDate.month;
     }
-    NSMutableArray *dataArray = [NSMutableArray array];
+    [self.monthArray removeAllObjects];
     for (NSInteger i = min; i <= max; i++) {
-        [dataArray addObject:[NSString stringWithFormat:@"%ld月",i]];
+        [self.monthArray addObject:[NSString stringWithFormat:@"%ld月",i]];
     }
     [self.monthTableView reloadData];
 }
@@ -413,7 +451,17 @@ typedef NS_ENUM(NSInteger,ViewTag) {
     
 }
 
-#pragma mark -property
+#pragma mark - public property
+
+- (CGFloat)viewWidth{
+    return LWDatePickerWidth;
+}
+
+- (CGFloat)viewHeight{
+    return LWDatePickerHeight;
+}
+
+#pragma mark - private property
 
 - (UIView *)backView{
     if (!_backView) {

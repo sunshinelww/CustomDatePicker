@@ -6,7 +6,12 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "LWDateTimeSettingModel.h"
 
 @interface LWDatePicker : UIView
+
+- (instancetype)initWithDateSettingModel:(LWDateTimeSettingModel *)settingModel;
+
+- (CGFloat)viewHeight;
 
 @end

@@ -11,4 +11,4 @@
 
 CustomDatePicker is available under the MIT license. See the LICENSE file for more info.
 
-该pod对项目[BAPickerView](https://github.com/boai)进行重写，仅作为学习
+该pod对项目[BAPickerView](https://github.com/boai)进行仿写，仅作为学习
