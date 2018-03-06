@@ -30,7 +30,20 @@ TODO: Add long description of the pod here.
 
   s.ios.deployment_target = '8.0'
 
-  s.source_files = 'CustomDatePicker/Classes/**/*'
+ s.source_files = 'CustomDatePicker/Classes/*.h'
+ s.public_header_files = 'CustomDatePicker/Classes/*.h'
+  s.resource_bundles = {
+    'podTestLibrary' => ['CustomDatePicker/Assets/*.png']
+  }
+ s.subspec 'Core' do |core|
+      core.source_files = 'CustomDatePicker/Classes/Core/*'
+  end
+
+  s.subspec 'Kit' do |kit|
+      kit.source_files = 'CustomDatePicker/Classes/Kit/*.{h,m}'
+      kit.public_header_files = 'CustomDatePicker/Classes/Kit/*.h'
+  end
+
   
   # s.resource_bundles = {
   #   'CustomDatePicker' => ['CustomDatePicker/Assets/*.png']

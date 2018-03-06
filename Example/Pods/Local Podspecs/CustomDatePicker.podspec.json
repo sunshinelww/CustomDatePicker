@@ -1,0 +1,39 @@
+{
+  "name": "CustomDatePicker",
+  "version": "0.1.0",
+  "summary": "A short description of CustomDatePicker.",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://github.com/13517248639@163.com/CustomDatePicker",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "13517248639@163.com": "liweiweisunshinelww@didichuxing.com"
+  },
+  "source": {
+    "git": "https://github.com/13517248639@163.com/CustomDatePicker.git",
+    "tag": "0.1.0"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "source_files": "CustomDatePicker/Classes/*.h",
+  "public_header_files": "CustomDatePicker/Classes/*.h",
+  "resource_bundles": {
+    "podTestLibrary": [
+      "CustomDatePicker/Assets/*.png"
+    ]
+  },
+  "subspecs": [
+    {
+      "name": "Core",
+      "source_files": "CustomDatePicker/Classes/Core/*"
+    },
+    {
+      "name": "Kit",
+      "source_files": "CustomDatePicker/Classes/Kit/*.{h,m}",
+      "public_header_files": "CustomDatePicker/Classes/Kit/*.h"
+    }
+  ]
+}

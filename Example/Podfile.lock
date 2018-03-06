@@ -1,0 +1,27 @@
+PODS:
+  - CustomDatePicker (0.1.0):
+    - CustomDatePicker/Core (= 0.1.0)
+    - CustomDatePicker/Kit (= 0.1.0)
+  - CustomDatePicker/Core (0.1.0)
+  - CustomDatePicker/Kit (0.1.0)
+  - FBSnapshotTestCase (2.1.4):
+    - FBSnapshotTestCase/SwiftSupport (= 2.1.4)
+  - FBSnapshotTestCase/Core (2.1.4)
+  - FBSnapshotTestCase/SwiftSupport (2.1.4):
+    - FBSnapshotTestCase/Core
+
+DEPENDENCIES:
+  - CustomDatePicker (from `../`)
+  - FBSnapshotTestCase
+
+EXTERNAL SOURCES:
+  CustomDatePicker:
+    :path: ../
+
+SPEC CHECKSUMS:
+  CustomDatePicker: e17c57f57174f310339ea10ab3a59306418596e2
+  FBSnapshotTestCase: 094f9f314decbabe373b87cc339bea235a63e07a
+
+PODFILE CHECKSUM: c3bccacf71e37b4bfac1072060a21a273543e62d
+
+COCOAPODS: 1.3.1
