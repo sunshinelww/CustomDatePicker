@@ -14,7 +14,6 @@
     if (key == nil) {
         return nil;
     }
-    key = nil;
     id value = [self objectForKey:key];
     if (value == [NSNull null]) {
         return nil;

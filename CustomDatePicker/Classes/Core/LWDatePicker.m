@@ -13,7 +13,7 @@
 
 
 #define LWDatePickerHeight  240.f
-#define LWDatePickerWidth   280.f
+#define LWDatePickerWidth   300.f
 #define LWDateTableViewCellId @"cell"
 
 typedef NS_ENUM(NSInteger,ViewTag) {
@@ -93,10 +93,10 @@ typedef NS_ENUM(NSInteger,ViewTag) {
 }
 
 - (void)registerTableViewCell{
-    [self.yearTableView registerClass:[LWCustomTableViewCell class] forCellReuseIdentifier:LWDateTableViewCellId];
-    [self.monthTableView registerClass:[LWCustomTableViewCell class] forCellReuseIdentifier:LWDateTableViewCellId];
-    [self.dayTableView registerClass:[LWCustomTableViewCell class] forCellReuseIdentifier:LWDateTableViewCellId];
-    [self.hourTableView registerClass:[LWCustomTableViewCell class] forCellReuseIdentifier:LWDateTableViewCellId];
+    [self.yearTableView registerClass:  [LWCustomTableViewCell class] forCellReuseIdentifier:LWDateTableViewCellId];
+    [self.monthTableView registerClass: [LWCustomTableViewCell class] forCellReuseIdentifier:LWDateTableViewCellId];
+    [self.dayTableView registerClass:   [LWCustomTableViewCell class] forCellReuseIdentifier:LWDateTableViewCellId];
+    [self.hourTableView registerClass:  [LWCustomTableViewCell class] forCellReuseIdentifier:LWDateTableViewCellId];
     [self.minuteTableView registerClass:[LWCustomTableViewCell class] forCellReuseIdentifier:LWDateTableViewCellId];
 }
 
@@ -138,8 +138,8 @@ typedef NS_ENUM(NSInteger,ViewTag) {
             self.dayTableView.frame = CGRectMake(minX, minY, minW, minH - minY);
             break;
         case LWDatePickerDateFormatTypeYMDHM:
-            minW = minW/5;
-            self.yearTableView.frame = CGRectMake(minX, minY, minW, minH - minY);
+            minW = (minW - 10) /5;
+            self.yearTableView.frame = CGRectMake(minX, minY, minW + 10, minH - minY);
             minX += minW;
             self.monthTableView.frame = CGRectMake(minX, minY, minW, minH - minY);
             minX += minW;
@@ -160,42 +160,93 @@ typedef NS_ENUM(NSInteger,ViewTag) {
 }
 
 - (void)refreshAllTime{
-    switch (self.settingModel.dateType) {
-        case LWDatePickerDateFormatTypeYM:{
-            [self refreshYear];
-            [self refreshMonthWithYear:[NSString stringWithFormat:@"%ld年",self.settingModel.defaultDate.year]];
-            break;
-        }
-        case LWDatePickerDateFormatTypeYMD:{
-            NSString *year = [NSString stringWithFormat:@"%ld年",self.settingModel.defaultDate.year];
-            NSString *month = [NSString stringWithFormat:@"%02ld月",self.settingModel.defaultDate.month];
-            [self refreshYear];
-            [self refreshMonthWithYear:year];
-            [self refreshDayWithYear:year andMonth:month];
-            break;
-        }
-        case LWDatePickerDateFormatTypeYMDHM:{
-            NSString *year = [NSString stringWithFormat:@"%ld年",self.settingModel.defaultDate.year];
-            NSString *month = [NSString stringWithFormat:@"%02ld月",self.settingModel.defaultDate.month];
-            NSString *day = [NSString stringWithFormat:@"%02ld日", self.settingModel.defaultDate.day];
-            NSString *hour = [NSString stringWithFormat:@"%02ld", self.settingModel.defaultDate.hour];
-            [self refreshYear];
-            [self refreshMonthWithYear:year];
-            [self refreshDayWithYear:year andMonth:month];
-            [self refreshHourWithYear:year andMonth:month andDay:day];
-            [self refreshMinuteWithYear:year andMonth:month andDay:day andHour:hour];
-            break;
-        }
-        default:
-            break;
-    }
-    
     NSDate *selectedDate = self.settingModel.defaultDate?:self.settingModel.endDate;
     [self.currentDateComponent lw_safeSetObject:[NSString stringWithFormat:@"%ld年",selectedDate.year] forKey:@"year"];
     [self.currentDateComponent lw_safeSetObject:[NSString stringWithFormat:@"%02ld月",selectedDate.month] forKey:@"month"];
     [self.currentDateComponent lw_safeSetObject:[NSString stringWithFormat:@"%02ld日",selectedDate.day] forKey:@"day"];
     [self.currentDateComponent lw_safeSetObject:[NSString stringWithFormat:@"%02ld",selectedDate.hour] forKey:@"hour"];
     [self.currentDateComponent lw_safeSetObject:[NSString stringWithFormat:@"%02ld",selectedDate.minute] forKey:@"minute"];
+    
+    switch (self.settingModel.dateType) {
+        case LWDatePickerDateFormatTypeYM:{
+            [self refreshYear];
+            [self refreshMonthWithYear:[self.currentDateComponent lw_stringForKey:@"year"]];
+            
+            [self setSelectDateComponent:@"year"];
+            [self setSelectDateComponent:@"month"];
+            break;
+        }
+        case LWDatePickerDateFormatTypeYMD:{
+            NSString *year = [self.currentDateComponent lw_stringForKey:@"year"];
+            NSString *month = [self.currentDateComponent lw_stringForKey:@"month"];
+            [self refreshYear];
+            [self refreshMonthWithYear:year];
+            [self refreshDayWithYear:year andMonth:month];
+            
+            [self setSelectDateComponent:@"year"];
+            [self setSelectDateComponent:@"month"];
+            [self setSelectDateComponent:@"day"];
+            break;
+        }
+        case LWDatePickerDateFormatTypeYMDHM:{
+            NSString *year = [self.currentDateComponent lw_stringForKey:@"year"];
+            NSString *month = [self.currentDateComponent lw_stringForKey:@"month"];
+            NSString *day = [self.currentDateComponent lw_stringForKey:@"day"];
+            NSString *hour = [self.currentDateComponent lw_stringForKey:@"hour"];
+            [self refreshYear];
+            [self refreshMonthWithYear:year];
+            [self refreshDayWithYear:year andMonth:month];
+            [self refreshHourWithYear:year andMonth:month andDay:day];
+            [self refreshMinuteWithYear:year andMonth:month andDay:day andHour:hour];
+            
+            [self setSelectDateComponent:@"year"];
+            [self setSelectDateComponent:@"month"];
+            [self setSelectDateComponent:@"day"];
+            [self setSelectDateComponent:@"hour"];
+            [self setSelectDateComponent:@"minute"];
+            break;
+        }
+        default:
+            break;
+    }
+}
+/**
+ 设置各个组件的选中时间
+ **/
+- (void)setSelectDateComponent:(NSString *)compnent{
+    if (!compnent) {
+        return;
+    }
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSArray *dataArray;
+        UITableView *tableView;
+        if ([compnent isEqualToString:@"year"]) {
+            dataArray = self.yearArray;
+            tableView = self.yearTableView;
+        }
+        else if ([compnent isEqualToString:@"month"]){
+            dataArray = self.monthArray;
+            tableView = self.monthTableView;
+        }
+        else if ([compnent isEqualToString:@"day"]){
+            dataArray = self.dayArray;
+            tableView = self.dayTableView;
+        }
+        else if ([compnent isEqualToString:@"hour"]){
+            dataArray = self.hourArray;
+            tableView = self.hourTableView;
+        }
+        else if ([compnent isEqualToString:@"minute"]){
+            dataArray = self.minuteArray;
+            tableView = self.minuteTableView;
+        }
+        NSString *value = [self.currentDateComponent lw_stringForKey:compnent];
+        NSInteger index = [dataArray indexOfObject:value];
+        if (index > 0 && index < dataArray.count) {
+            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:(index + 2) inSection:0];
+            [tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+        }
+    });
 }
 
 #pragma mark - tableView delegate & dataSource
@@ -310,7 +361,7 @@ typedef NS_ENUM(NSInteger,ViewTag) {
     UILabel *titleLabel = [cell.contentView viewWithTag:100];
     if (maxY > cellY && minY < cellY) { //当前cell是选中状态
         titleLabel.alpha = 1.f;
-        titleLabel.font = [UIFont systemFontOfSize:15+5];
+        titleLabel.font = [UIFont systemFontOfSize:15+2];
     }
     else{
         titleLabel.alpha = 0.5f;
@@ -371,9 +422,10 @@ typedef NS_ENUM(NSInteger,ViewTag) {
     
     [self.yearArray removeAllObjects];
     for (NSInteger i = minYear; i<= maxYear; i++) {
-        [self.yearArray addObject:[NSString stringWithFormat:@"%ld",(long)i]];
+        [self.yearArray addObject:[NSString stringWithFormat:@"%ld年",(long)i]];
     }
     [self.yearTableView reloadData];
+    
 }
 
 /**
