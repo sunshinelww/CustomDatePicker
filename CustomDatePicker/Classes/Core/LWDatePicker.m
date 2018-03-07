@@ -9,6 +9,7 @@
 #import "LWDateTimeSettingModel.h"
 #import "NSDate+LWKit.h"
 #import "LWTheme.h"
+#import "NSDictionary+SafeAccess.h"
 
 
 #define LWDatePickerHeight  240.f
@@ -188,6 +189,13 @@ typedef NS_ENUM(NSInteger,ViewTag) {
         default:
             break;
     }
+    
+    NSDate *selectedDate = self.settingModel.defaultDate?:self.settingModel.endDate;
+    [self.currentDateComponent lw_safeSetObject:[NSString stringWithFormat:@"%ld年",selectedDate.year] forKey:@"year"];
+    [self.currentDateComponent lw_safeSetObject:[NSString stringWithFormat:@"%02ld月",selectedDate.month] forKey:@"month"];
+    [self.currentDateComponent lw_safeSetObject:[NSString stringWithFormat:@"%02ld日",selectedDate.day] forKey:@"day"];
+    [self.currentDateComponent lw_safeSetObject:[NSString stringWithFormat:@"%02ld",selectedDate.hour] forKey:@"hour"];
+    [self.currentDateComponent lw_safeSetObject:[NSString stringWithFormat:@"%02ld",selectedDate.minute] forKey:@"minute"];
 }
 
 #pragma mark - tableView delegate & dataSource
@@ -199,19 +207,19 @@ typedef NS_ENUM(NSInteger,ViewTag) {
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
     switch (tableView.tag) {
         case view_tag_year:
-            return self.yearArray.count;
+            return self.yearArray.count + 4;
             break;
         case view_tag_month:
-            return self.monthArray.count;
+            return self.monthArray.count + 4;
             break;
         case view_tag_day:
-            return self.dayArray.count;
+            return self.dayArray.count + 4;
             break;
         case view_tag_hour:
-            return self.hourArray.count;
+            return self.hourArray.count + 4;
             break;
         case view_tag_minute:
-            return self.minuteArray.count;
+            return self.minuteArray.count + 4;
             break;
         default:
             return 0;
@@ -261,7 +269,12 @@ typedef NS_ENUM(NSInteger,ViewTag) {
             dataArray = [NSArray array];
             break;
     }
-    titleLabel.text = dataArray[indexPath.row];
+    if (indexPath.row < 2 || indexPath.row > dataArray.count + 1) {
+        titleLabel.text = @"";
+    }
+    else{
+        titleLabel.text = dataArray[indexPath.row - 2];
+    }
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
     return cell;
 }
@@ -288,7 +301,7 @@ typedef NS_ENUM(NSInteger,ViewTag) {
  **/
 - (void)changeLabelWithTableView:(UITableView *)tableView andCell:(LWCustomTableViewCell *)cell{
     CGRect rect = [tableView rectForRowAtIndexPath:cell.indexPath];
-    CGRect viewRect = [self convertRect:rect toView:self.backView];
+    CGRect viewRect = [tableView convertRect:rect toView:self.backView];
     
     CGFloat minY = tableView.center.y - _cellHeight/2;
     CGFloat maxY = tableView.center.y + _cellHeight/2;
@@ -309,27 +322,34 @@ typedef NS_ENUM(NSInteger,ViewTag) {
     NSArray *visibleCells = tableView.visibleCells;
     [visibleCells enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         LWCustomTableViewCell *cell = (LWCustomTableViewCell *)obj;
-        if (cell.alpha == 1.f) {
-            UILabel *titleLabel = [cell.contentView viewWithTag:100];
+        UILabel *titleLabel = [cell.contentView viewWithTag:100];
+        if (titleLabel.alpha == 1.f) {
+            [tableView scrollToRowAtIndexPath:cell.indexPath atScrollPosition:UITableViewScrollPositionMiddle animated:YES]; //将选中的Cell居中
             NSString *value = titleLabel.text;
-            
+            if ([value isEqualToString:@""]) {
+                return ;
+            }
             switch (tableView.tag) {
                 case view_tag_year:{
+                    [self.currentDateComponent lw_safeSetObject:value forKey:@"year"];
                     [self refreshMonthWithYear:value];
                     break;
                 }
                 case view_tag_month:{
+                    [self.currentDateComponent lw_safeSetObject:value forKey:@"month"];
                     NSString *year = [self.currentDateComponent objectForKey:@"year"];
                     [self refreshDayWithYear:year andMonth:value];
                     break;
                 }
                 case view_tag_day:{
+                    [self.currentDateComponent lw_safeSetObject:value forKey:@"day"];
                     NSString *year = [self.currentDateComponent objectForKey:@"year"];
                     NSString *month = [self.currentDateComponent objectForKey:@"month"];
                     [self refreshHourWithYear:year andMonth:month andDay:value];
                     break;
                 }
                 case view_tag_hour:{
+                    [self.currentDateComponent lw_safeSetObject:value forKey:@"hour"];
                     NSString *year = [self.currentDateComponent objectForKey:@"year"];
                     NSString *month = [self.currentDateComponent objectForKey:@"month"];
                     NSString *day = [self.currentDateComponent objectForKey:@"day"];
@@ -403,7 +423,7 @@ typedef NS_ENUM(NSInteger,ViewTag) {
     for(NSInteger i = min; i<= max; i++){
         [self.dayArray addObject:[NSString stringWithFormat:@"%02ld日",(long)i]];
     }
-    [self.monthTableView reloadData];
+    [self.dayTableView reloadData];
 }
 
 - (void)refreshHourWithYear:(NSString *)year andMonth:(NSString *)month andDay:(NSString *)day{
@@ -462,6 +482,13 @@ typedef NS_ENUM(NSInteger,ViewTag) {
 }
 
 #pragma mark - private property
+
+- (NSMutableDictionary *)currentDateComponent{
+    if (!_currentDateComponent) {
+        _currentDateComponent = [NSMutableDictionary dictionary];
+    }
+    return _currentDateComponent;
+}
 
 - (UIView *)backView{
     if (!_backView) {
