@@ -244,7 +244,7 @@ typedef NS_ENUM(NSInteger,ViewTag) {
         NSInteger index = [dataArray indexOfObject:value];
         if (index > 0 && index < dataArray.count) {
             NSIndexPath *indexPath = [NSIndexPath indexPathForRow:(index + 2) inSection:0];
-            [tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+            [tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionMiddle animated:NO];
         }
     });
 }
