@@ -10,6 +10,7 @@
 #import "NSDate+LWKit.h"
 #import "LWTheme.h"
 #import "NSDictionary+SafeAccess.h"
+#import "NSArray+SafeAccess.h"
 
 
 #define LWDatePickerHeight  240.f
@@ -170,7 +171,7 @@ typedef NS_ENUM(NSInteger,ViewTag) {
     switch (self.settingModel.dateType) {
         case LWDatePickerDateFormatTypeYM:{
             [self refreshYear];
-            [self refreshMonthWithYear:[self.currentDateComponent lw_stringForKey:@"year"]];
+            [self refreshMonthWithYear:[self.currentDateComponent lw_stringForKey:@"year"] isInit:YES];
             
             [self setSelectDateComponent:@"year"];
             [self setSelectDateComponent:@"month"];
@@ -180,8 +181,8 @@ typedef NS_ENUM(NSInteger,ViewTag) {
             NSString *year = [self.currentDateComponent lw_stringForKey:@"year"];
             NSString *month = [self.currentDateComponent lw_stringForKey:@"month"];
             [self refreshYear];
-            [self refreshMonthWithYear:year];
-            [self refreshDayWithYear:year andMonth:month];
+            [self refreshMonthWithYear:year isInit:YES];
+            [self refreshDayWithYear:year andMonth:month isInit:YES];
             
             [self setSelectDateComponent:@"year"];
             [self setSelectDateComponent:@"month"];
@@ -194,10 +195,10 @@ typedef NS_ENUM(NSInteger,ViewTag) {
             NSString *day = [self.currentDateComponent lw_stringForKey:@"day"];
             NSString *hour = [self.currentDateComponent lw_stringForKey:@"hour"];
             [self refreshYear];
-            [self refreshMonthWithYear:year];
-            [self refreshDayWithYear:year andMonth:month];
-            [self refreshHourWithYear:year andMonth:month andDay:day];
-            [self refreshMinuteWithYear:year andMonth:month andDay:day andHour:hour];
+            [self refreshMonthWithYear:year isInit:YES];
+            [self refreshDayWithYear:year andMonth:month isInit:YES];
+            [self refreshHourWithYear:year andMonth:month andDay:day isInit:YES];
+            [self refreshMinuteWithYear:year andMonth:month andDay:day andHour:hour isInit:YES];
             
             [self setSelectDateComponent:@"year"];
             [self setSelectDateComponent:@"month"];
@@ -242,7 +243,7 @@ typedef NS_ENUM(NSInteger,ViewTag) {
         }
         NSString *value = [self.currentDateComponent lw_stringForKey:compnent];
         NSInteger index = [dataArray indexOfObject:value];
-        if (index > 0 && index < dataArray.count) {
+        if (index >= 0 && index < dataArray.count) {
             NSIndexPath *indexPath = [NSIndexPath indexPathForRow:(index + 2) inSection:0];
             [tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionMiddle animated:NO];
         }
@@ -383,20 +384,20 @@ typedef NS_ENUM(NSInteger,ViewTag) {
             switch (tableView.tag) {
                 case view_tag_year:{
                     [self.currentDateComponent lw_safeSetObject:value forKey:@"year"];
-                    [self refreshMonthWithYear:value];
+                    [self refreshMonthWithYear:value isInit:NO];
                     break;
                 }
                 case view_tag_month:{
                     [self.currentDateComponent lw_safeSetObject:value forKey:@"month"];
                     NSString *year = [self.currentDateComponent objectForKey:@"year"];
-                    [self refreshDayWithYear:year andMonth:value];
+                    [self refreshDayWithYear:year andMonth:value isInit:NO];
                     break;
                 }
                 case view_tag_day:{
                     [self.currentDateComponent lw_safeSetObject:value forKey:@"day"];
                     NSString *year = [self.currentDateComponent objectForKey:@"year"];
                     NSString *month = [self.currentDateComponent objectForKey:@"month"];
-                    [self refreshHourWithYear:year andMonth:month andDay:value];
+                    [self refreshHourWithYear:year andMonth:month andDay:value isInit:NO];
                     break;
                 }
                 case view_tag_hour:{
@@ -404,7 +405,7 @@ typedef NS_ENUM(NSInteger,ViewTag) {
                     NSString *year = [self.currentDateComponent objectForKey:@"year"];
                     NSString *month = [self.currentDateComponent objectForKey:@"month"];
                     NSString *day = [self.currentDateComponent objectForKey:@"day"];
-                    [self refreshMinuteWithYear:year andMonth:month andDay:day andHour:value];
+                    [self refreshMinuteWithYear:year andMonth:month andDay:day andHour:value isInit:NO];
                     break;
                 }
                 case view_tag_minute:
@@ -425,13 +426,12 @@ typedef NS_ENUM(NSInteger,ViewTag) {
         [self.yearArray addObject:[NSString stringWithFormat:@"%ld年",(long)i]];
     }
     [self.yearTableView reloadData];
-    
 }
 
 /**
  * 根据年刷新月
  **/
-- (void)refreshMonthWithYear:(NSString *)year{
+- (void)refreshMonthWithYear:(NSString *)year isInit:(BOOL)init{
     BOOL isMin = [year isEqualToString:self.yearArray.firstObject];
     BOOL isMax = [year isEqualToString:self.yearArray.lastObject];
     NSInteger min = 1;
@@ -442,15 +442,20 @@ typedef NS_ENUM(NSInteger,ViewTag) {
     if (isMax) {
         max = self.settingModel.endDate.month;
     }
+    NSIndexPath *selectedIndexPath =[self.monthTableView indexPathForSelectedRow];
+    NSString *strValue = selectedIndexPath == nil? @"":[self.monthArray lw_stringAtIndex:selectedIndexPath.row];
     [self.monthArray removeAllObjects];
     for (NSInteger i = min; i <= max; i++) {
-        [self.monthArray addObject:[NSString stringWithFormat:@"%ld月",i]];
+        [self.monthArray addObject:[NSString stringWithFormat:@"%02ld月",i]];
     }
     [self.monthTableView reloadData];
-    [self refreshSelectDateWithTag:view_tag_month];
+    if(!init){
+        BOOL scrollToTop = (![strValue isEqualToString:@""] && self.monthArray.count > 0 && [self.monthArray containsObject:strValue]);
+        [self refreshSelectDateWithTag:view_tag_month scrollToTop:scrollToTop];
+    }
 }
 
-- (void)refreshDayWithYear:(NSString *)year andMonth:(NSString *)month{
+- (void)refreshDayWithYear:(NSString *)year andMonth:(NSString *)month isInit:(BOOL)init{
     BOOL isMin = [year isEqualToString:self.yearArray.firstObject] && [month isEqualToString:self.monthArray.firstObject];
     BOOL isMax = [year isEqualToString:self.yearArray.lastObject] && [month isEqualToString:self.monthArray.lastObject];
     if ([year containsString:@"年"]) {
@@ -472,15 +477,20 @@ typedef NS_ENUM(NSInteger,ViewTag) {
     if (isMax) {
         max = self.settingModel.endDate.day;
     }
+    NSIndexPath *selectedIndexPath =[self.dayTableView indexPathForSelectedRow];
+    NSString *strValue = selectedIndexPath == nil? @"" : [self.dayArray lw_stringAtIndex:selectedIndexPath.row];
     [self.dayArray removeAllObjects];
     for(NSInteger i = min; i<= max; i++){
         [self.dayArray addObject:[NSString stringWithFormat:@"%02ld日",(long)i]];
     }
     [self.dayTableView reloadData];
-    [self refreshSelectDateWithTag:view_tag_day];
+    if (!init) {
+        BOOL scrollToTop = (![strValue isEqualToString:@""] && self.dayArray.count > 0 && ![self.dayArray containsObject:strValue]);
+        [self refreshSelectDateWithTag:view_tag_day scrollToTop:scrollToTop];
+    }
 }
 
-- (void)refreshHourWithYear:(NSString *)year andMonth:(NSString *)month andDay:(NSString *)day{
+- (void)refreshHourWithYear:(NSString *)year andMonth:(NSString *)month andDay:(NSString *)day isInit:(BOOL)init{
     BOOL isMin = [year isEqualToString:self.yearArray.firstObject] && [month isEqualToString:self.monthArray.firstObject] && [day isEqualToString:self.dayArray.firstObject];
     BOOL isMax = [year isEqualToString:self.yearArray.lastObject] && [month isEqualToString:self.monthArray.lastObject] && [day isEqualToString:self.dayArray.lastObject];
     
@@ -493,15 +503,21 @@ typedef NS_ENUM(NSInteger,ViewTag) {
     if (isMax) {
         max = self.settingModel.endDate.hour;
     }
+    NSIndexPath *selectedIndexPath =[self.hourTableView indexPathForSelectedRow];
+    NSString *strValue = selectedIndexPath == nil ? @"" : [self.hourArray lw_stringAtIndex:selectedIndexPath.row];
     [self.hourArray removeAllObjects];
     for (NSUInteger i = min; i <= max; i++) {
         [self.hourArray addObject:[NSString stringWithFormat:@"%02ld",i]];
     }
     [self.hourTableView reloadData];
-    [self refreshSelectDateWithTag:view_tag_hour];
+    
+    if(!init){
+        BOOL scrollToTop = (![strValue isEqualToString:@""] && self.hourArray.count > 0 && ![self.hourArray containsObject:strValue]);
+        [self refreshSelectDateWithTag:view_tag_hour scrollToTop:scrollToTop];
+    }
 }
 
-- (void)refreshMinuteWithYear:(NSString *)year andMonth:(NSString *)month andDay:(NSString *)day andHour:(NSString *)hour{
+- (void)refreshMinuteWithYear:(NSString *)year andMonth:(NSString *)month andDay:(NSString *)day andHour:(NSString *)hour isInit:(BOOL)init{
     BOOL isMin = [year isEqualToString:self.yearArray.firstObject] && [month isEqualToString:self.monthArray.firstObject] && [day isEqualToString:self.dayArray.firstObject] && [hour isEqualToString:self.hourArray.firstObject];
     BOOL isMax = [year isEqualToString:self.yearArray.lastObject] && [month isEqualToString:self.monthArray.lastObject] && [day isEqualToString:self.dayArray.lastObject] && [hour isEqualToString:self.hourArray.lastObject ];
     
@@ -514,62 +530,72 @@ typedef NS_ENUM(NSInteger,ViewTag) {
     if (isMax) {
         max = self.settingModel.endDate.minute;
     }
+    NSIndexPath *selectedIndexPath =[self.minuteTableView indexPathForSelectedRow];
+    NSString *strValue = selectedIndexPath == nil ? @"" :[self.minuteArray lw_stringAtIndex:selectedIndexPath.row];
     [self.minuteArray removeAllObjects];
     for (NSUInteger i = min ; i <= max; i++) {
         [self.minuteArray addObject:[NSString stringWithFormat:@"%02ld", i]];
     }
     [self.minuteTableView reloadData];
-    [self refreshSelectDateWithTag:view_tag_minute];
+    if (!init) {
+        BOOL scrollToTop = (![strValue isEqualToString:@""] && self.minuteArray.count > 0 && ![self.minuteArray containsObject:strValue]);
+        [self refreshSelectDateWithTag:view_tag_minute scrollToTop:scrollToTop];
+    }
 }
 
-- (void)refreshSelectDateWithTag:(ViewTag)tag{
+- (void)refreshSelectDateWithTag:(ViewTag)tag scrollToTop:(BOOL)toTop {
     UITableView *tableView = [self.backView viewWithTag:tag];
-    dispatch_async(dispatch_get_main_queue(), ^{
-        NSArray *cells = [tableView visibleCells];
-        [cells enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-            LWCustomTableViewCell *cell = (LWCustomTableViewCell *)obj;
-            UILabel *label = [cell viewWithTag:100];
-            if (label.alpha == 1.f) {
-                [tableView scrollToRowAtIndexPath:cell.indexPath atScrollPosition:UITableViewScrollPositionMiddle animated:NO];
-                NSString *key = @"";
-                switch (tag) {
-                    case view_tag_year:
-                        key = @"year";
-                        break;
-                    case view_tag_month:
-                        key = @"month";
-                        break;
-                    case view_tag_day:
-                        key = @"day";
-                        break;
-                    case view_tag_hour:
-                        key = @"hour";
-                        break;
-                    case view_tag_minute:
-                        key = @"minute";
-                        break;
-                    default:
-                        break;
+    dispatch_async(dispatch_get_main_queue(), ^{ //等待列表数据刷新完成，在进行读取选中的时间
+        if (toTop) {
+            [tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0] atScrollPosition:UITableViewScrollPositionMiddle animated:NO];
+        }
+        else{
+            NSArray *cells = [tableView visibleCells];
+            [cells enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                LWCustomTableViewCell *cell = (LWCustomTableViewCell *)obj;
+                UILabel *label = [cell viewWithTag:100];
+                if (label.alpha == 1.f) {
+                    [tableView scrollToRowAtIndexPath:cell.indexPath atScrollPosition:UITableViewScrollPositionMiddle animated:NO];
+                    NSString *key = @"";
+                    switch (tag) {
+                        case view_tag_year:
+                            key = @"year";
+                            break;
+                        case view_tag_month:
+                            key = @"month";
+                            break;
+                        case view_tag_day:
+                            key = @"day";
+                            break;
+                        case view_tag_hour:
+                            key = @"hour";
+                            break;
+                        case view_tag_minute:
+                            key = @"minute";
+                            break;
+                        default:
+                            break;
+                    }
+                    if (label.text && label.text.length > 0)
+                    {
+                        [self.currentDateComponent lw_safeSetObject:label.text forKey:key];
+                    }
                 }
-                if (label.text)
-                {
-                    [self.currentDateComponent lw_safeSetObject:label.text forKey:key];
-                }
-            }
-        }];
+            }];
+        }
         
         switch (tag) {
             case view_tag_year:
-                [self refreshMonthWithYear:[self.currentDateComponent lw_stringForKey:@"year"]];
+                [self refreshMonthWithYear:[self.currentDateComponent lw_stringForKey:@"year"] isInit:NO];
                 break;
             case view_tag_month:
-                [self refreshDayWithYear:[self.currentDateComponent lw_stringForKey:@"year"] andMonth:[self.currentDateComponent objectForKey:@"month"]];
+                [self refreshDayWithYear:[self.currentDateComponent lw_stringForKey:@"year"] andMonth:[self.currentDateComponent objectForKey:@"month"] isInit:NO];
                 break;
             case view_tag_day:
-                [self refreshHourWithYear:[self.currentDateComponent lw_stringForKey:@"year"] andMonth:[self.currentDateComponent lw_stringForKey:@"month"] andDay:[self.currentDateComponent lw_stringForKey:@"day"]];
+                [self refreshHourWithYear:[self.currentDateComponent lw_stringForKey:@"year"] andMonth:[self.currentDateComponent lw_stringForKey:@"month"] andDay:[self.currentDateComponent lw_stringForKey:@"day"] isInit:NO];
                 break;
             case view_tag_hour:
-                [self refreshMinuteWithYear:[self.currentDateComponent lw_stringForKey:@"year"] andMonth:[self.currentDateComponent lw_stringForKey:@"month"] andDay:[self.currentDateComponent lw_stringForKey:@"day"] andHour:[self.currentDateComponent lw_stringForKey:@"hour"]];
+                [self refreshMinuteWithYear:[self.currentDateComponent lw_stringForKey:@"year"] andMonth:[self.currentDateComponent lw_stringForKey:@"month"] andDay:[self.currentDateComponent lw_stringForKey:@"day"] andHour:[self.currentDateComponent lw_stringForKey:@"hour"] isInit:NO];
                 break;
             default:
                 break;
