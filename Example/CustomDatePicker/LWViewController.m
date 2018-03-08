@@ -23,7 +23,9 @@
     [super viewDidLoad];
     LWDateTimeSettingModel *settingModel = [LWDateTimeSettingModel new];
     settingModel.dateType = LWDatePickerDateFormatTypeYMDHM;
-    settingModel.startDate = [NSDate dateWithTimeIntervalSince1970:0];
+    NSDateFormatter *formatter = [NSDateFormatter new];
+    [formatter setDateFormat:@"yyyy-MM-dd HH:mm"];
+    settingModel.startDate = [formatter dateFromString:@"2008-08-06 20:00"];
     settingModel.endDate = [NSDate date];
     settingModel.defaultDate = [NSDate date];
     self.datePicker = [[LWDatePicker alloc] initWithDateSettingModel:settingModel];

@@ -447,6 +447,7 @@ typedef NS_ENUM(NSInteger,ViewTag) {
         [self.monthArray addObject:[NSString stringWithFormat:@"%ld月",i]];
     }
     [self.monthTableView reloadData];
+    [self refreshSelectDateWithTag:view_tag_month];
 }
 
 - (void)refreshDayWithYear:(NSString *)year andMonth:(NSString *)month{
@@ -476,6 +477,7 @@ typedef NS_ENUM(NSInteger,ViewTag) {
         [self.dayArray addObject:[NSString stringWithFormat:@"%02ld日",(long)i]];
     }
     [self.dayTableView reloadData];
+    [self refreshSelectDateWithTag:view_tag_day];
 }
 
 - (void)refreshHourWithYear:(NSString *)year andMonth:(NSString *)month andDay:(NSString *)day{
@@ -496,6 +498,7 @@ typedef NS_ENUM(NSInteger,ViewTag) {
         [self.hourArray addObject:[NSString stringWithFormat:@"%02ld",i]];
     }
     [self.hourTableView reloadData];
+    [self refreshSelectDateWithTag:view_tag_hour];
 }
 
 - (void)refreshMinuteWithYear:(NSString *)year andMonth:(NSString *)month andDay:(NSString *)day andHour:(NSString *)hour{
@@ -516,6 +519,63 @@ typedef NS_ENUM(NSInteger,ViewTag) {
         [self.minuteArray addObject:[NSString stringWithFormat:@"%02ld", i]];
     }
     [self.minuteTableView reloadData];
+    [self refreshSelectDateWithTag:view_tag_minute];
+}
+
+- (void)refreshSelectDateWithTag:(ViewTag)tag{
+    UITableView *tableView = [self.backView viewWithTag:tag];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSArray *cells = [tableView visibleCells];
+        [cells enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+            LWCustomTableViewCell *cell = (LWCustomTableViewCell *)obj;
+            UILabel *label = [cell viewWithTag:100];
+            if (label.alpha == 1.f) {
+                [tableView scrollToRowAtIndexPath:cell.indexPath atScrollPosition:UITableViewScrollPositionMiddle animated:NO];
+                NSString *key = @"";
+                switch (tag) {
+                    case view_tag_year:
+                        key = @"year";
+                        break;
+                    case view_tag_month:
+                        key = @"month";
+                        break;
+                    case view_tag_day:
+                        key = @"day";
+                        break;
+                    case view_tag_hour:
+                        key = @"hour";
+                        break;
+                    case view_tag_minute:
+                        key = @"minute";
+                        break;
+                    default:
+                        break;
+                }
+                if (label.text)
+                {
+                    [self.currentDateComponent lw_safeSetObject:label.text forKey:key];
+                }
+            }
+        }];
+        
+        switch (tag) {
+            case view_tag_year:
+                [self refreshMonthWithYear:[self.currentDateComponent lw_stringForKey:@"year"]];
+                break;
+            case view_tag_month:
+                [self refreshDayWithYear:[self.currentDateComponent lw_stringForKey:@"year"] andMonth:[self.currentDateComponent objectForKey:@"month"]];
+                break;
+            case view_tag_day:
+                [self refreshHourWithYear:[self.currentDateComponent lw_stringForKey:@"year"] andMonth:[self.currentDateComponent lw_stringForKey:@"month"] andDay:[self.currentDateComponent lw_stringForKey:@"day"]];
+                break;
+            case view_tag_hour:
+                [self refreshMinuteWithYear:[self.currentDateComponent lw_stringForKey:@"year"] andMonth:[self.currentDateComponent lw_stringForKey:@"month"] andDay:[self.currentDateComponent lw_stringForKey:@"day"] andHour:[self.currentDateComponent lw_stringForKey:@"hour"]];
+                break;
+            default:
+                break;
+        }
+        
+    });
 }
 
 #pragma mark - event
