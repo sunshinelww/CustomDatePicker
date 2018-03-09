@@ -546,6 +546,33 @@ typedef NS_ENUM(NSInteger,ViewTag) {
     dispatch_async(dispatch_get_main_queue(), ^{ //等待列表数据刷新完成，在进行读取选中的时间
         if (toTop) {
             [tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0] atScrollPosition:UITableViewScrollPositionMiddle animated:NO];
+            NSArray *dataArray;
+            NSString *key;
+            switch (tag) {
+                case view_tag_year:
+                    key = @"year";
+                    dataArray = self.yearArray;
+                    break;
+                case view_tag_month:
+                    key = @"month";
+                    dataArray = self.monthArray;
+                    break;
+                case view_tag_day:
+                    key = @"day";
+                    dataArray = self.dayArray;
+                    break;
+                case view_tag_hour:
+                    key = @"hour";
+                    dataArray = self.hourArray;
+                    break;
+                case view_tag_minute:
+                    key = @"minute";
+                    dataArray = self.minuteArray;
+                    break;
+                default:
+                    break;
+            }
+            [self.currentDateComponent lw_safeSetObject:[dataArray lw_stringAtIndex:0] forKey:key];
         }
         else{
             NSArray *cells = [tableView visibleCells];
