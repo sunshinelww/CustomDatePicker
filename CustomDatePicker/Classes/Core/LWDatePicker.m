@@ -416,6 +416,18 @@ typedef NS_ENUM(NSInteger,ViewTag) {
             }
         }
     }];
+    [self.toolBarContentLabel setText:[self getCurSelectedTime]];
+}
+
+- (NSString *)getCurSelectedTime{
+    NSMutableString *selectedDateStr = [NSMutableString string];
+    [selectedDateStr appendString:[self.currentDateComponent lw_stringForKey:@"year"]];
+    [selectedDateStr appendString:[self.currentDateComponent lw_stringForKey:@"month"]];
+    [selectedDateStr appendString:[self.currentDateComponent lw_stringForKey:@"day"]];
+    [selectedDateStr appendString:[self.currentDateComponent lw_stringForKey:@"hour"]];
+    [selectedDateStr appendString:@" "];
+    [selectedDateStr appendString:[self.currentDateComponent lw_stringForKey:@"minute"]];
+    return [selectedDateStr copy];
 }
 
 - (void)refreshYear{
@@ -608,7 +620,7 @@ typedef NS_ENUM(NSInteger,ViewTag) {
                 }
             }];
         }
-        
+        [self.toolBarContentLabel setText:[self getCurSelectedTime]];
         switch (tag) {
             case view_tag_year:
                 [self refreshMonthWithYear:[self.currentDateComponent lw_stringForKey:@"year"] isInit:NO];
