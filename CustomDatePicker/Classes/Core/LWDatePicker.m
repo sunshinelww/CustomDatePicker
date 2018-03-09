@@ -409,6 +409,7 @@ typedef NS_ENUM(NSInteger,ViewTag) {
                     break;
                 }
                 case view_tag_minute:
+                    [self.currentDateComponent lw_safeSetObject:value forKey:@"minute"];
                     break;
                 default:
                     break;
@@ -442,15 +443,15 @@ typedef NS_ENUM(NSInteger,ViewTag) {
     if (isMax) {
         max = self.settingModel.endDate.month;
     }
-    NSIndexPath *selectedIndexPath =[self.monthTableView indexPathForSelectedRow];
-    NSString *strValue = selectedIndexPath == nil? @"":[self.monthArray lw_stringAtIndex:selectedIndexPath.row];
+    
     [self.monthArray removeAllObjects];
     for (NSInteger i = min; i <= max; i++) {
         [self.monthArray addObject:[NSString stringWithFormat:@"%02ld月",i]];
     }
     [self.monthTableView reloadData];
     if(!init){
-        BOOL scrollToTop = (![strValue isEqualToString:@""] && self.monthArray.count > 0 && [self.monthArray containsObject:strValue]);
+        NSString *strValue =[self.currentDateComponent lw_stringForKey:@"month"];
+        BOOL scrollToTop = (![strValue isEqualToString:@""] && self.monthArray.count > 0 && ![self.monthArray containsObject:strValue]);
         [self refreshSelectDateWithTag:view_tag_month scrollToTop:scrollToTop];
     }
 }
@@ -477,14 +478,13 @@ typedef NS_ENUM(NSInteger,ViewTag) {
     if (isMax) {
         max = self.settingModel.endDate.day;
     }
-    NSIndexPath *selectedIndexPath =[self.dayTableView indexPathForSelectedRow];
-    NSString *strValue = selectedIndexPath == nil? @"" : [self.dayArray lw_stringAtIndex:selectedIndexPath.row];
     [self.dayArray removeAllObjects];
     for(NSInteger i = min; i<= max; i++){
         [self.dayArray addObject:[NSString stringWithFormat:@"%02ld日",(long)i]];
     }
     [self.dayTableView reloadData];
     if (!init) {
+        NSString *strValue = [self.currentDateComponent lw_stringForKey:@"day"];
         BOOL scrollToTop = (![strValue isEqualToString:@""] && self.dayArray.count > 0 && ![self.dayArray containsObject:strValue]);
         [self refreshSelectDateWithTag:view_tag_day scrollToTop:scrollToTop];
     }
@@ -503,8 +503,6 @@ typedef NS_ENUM(NSInteger,ViewTag) {
     if (isMax) {
         max = self.settingModel.endDate.hour;
     }
-    NSIndexPath *selectedIndexPath =[self.hourTableView indexPathForSelectedRow];
-    NSString *strValue = selectedIndexPath == nil ? @"" : [self.hourArray lw_stringAtIndex:selectedIndexPath.row];
     [self.hourArray removeAllObjects];
     for (NSUInteger i = min; i <= max; i++) {
         [self.hourArray addObject:[NSString stringWithFormat:@"%02ld",i]];
@@ -512,6 +510,7 @@ typedef NS_ENUM(NSInteger,ViewTag) {
     [self.hourTableView reloadData];
     
     if(!init){
+        NSString *strValue = [self.currentDateComponent lw_stringForKey:@"hour"];
         BOOL scrollToTop = (![strValue isEqualToString:@""] && self.hourArray.count > 0 && ![self.hourArray containsObject:strValue]);
         [self refreshSelectDateWithTag:view_tag_hour scrollToTop:scrollToTop];
     }
@@ -530,14 +529,13 @@ typedef NS_ENUM(NSInteger,ViewTag) {
     if (isMax) {
         max = self.settingModel.endDate.minute;
     }
-    NSIndexPath *selectedIndexPath =[self.minuteTableView indexPathForSelectedRow];
-    NSString *strValue = selectedIndexPath == nil ? @"" :[self.minuteArray lw_stringAtIndex:selectedIndexPath.row];
     [self.minuteArray removeAllObjects];
     for (NSUInteger i = min ; i <= max; i++) {
         [self.minuteArray addObject:[NSString stringWithFormat:@"%02ld", i]];
     }
     [self.minuteTableView reloadData];
     if (!init) {
+        NSString *strValue = [self.currentDateComponent lw_stringForKey:@"minute"];
         BOOL scrollToTop = (![strValue isEqualToString:@""] && self.minuteArray.count > 0 && ![self.minuteArray containsObject:strValue]);
         [self refreshSelectDateWithTag:view_tag_minute scrollToTop:scrollToTop];
     }
